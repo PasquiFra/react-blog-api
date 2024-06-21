@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import './formStyle.scss'
 
-const Form = ({ setError }) => {
+const Form = ({ setError, fetchPosts }) => {
 
     // Setto l'oggetto data del form per raccogliere i vari campi input
     const setupFormData = {
         title: "",
         content: "",
-        image: "",
+        image: null,
         category: "",
         tags: [],
-        published: null
+        published: null,
+        userId: 1
     }
 
     const [formData, setFormData] = useState(setupFormData);
@@ -51,7 +52,7 @@ const Form = ({ setError }) => {
         {
             label: "Tags",
             type: 'checkbox',
-            name: "tags[]",
+            name: "tags",
             className: 'ms-2'
         },
         {
@@ -63,7 +64,7 @@ const Form = ({ setError }) => {
     ]
 
     const handleInputField = (name, value, tagName) => {
-        if (name === "tags[]") {
+        if (name === "tags") {
             setFormData(current => {
                 const updatedTags = value
                     ? [...current.tags, tagName]
@@ -74,10 +75,12 @@ const Form = ({ setError }) => {
                 };
             });
         } else if (name === "image") {
-            setFormData(current => ({
-                ...current,
-                image: value
-            }));
+            if (value instanceof File) {
+                setFormData(current => ({
+                    ...current,
+                    image: value
+                }));
+            }
         } else {
             setFormData(current => ({
                 ...current,
@@ -86,12 +89,38 @@ const Form = ({ setError }) => {
         }
     }
 
-    const submitForm = (event) => {
+    const submitForm = async (event) => {
         event.preventDefault()
+        const sendPostEndpoint = "http://127.0.0.1:3000/posts"
+        setFormData(formData)
+
+        const formDataToSend = new FormData();
+
+        formDataToSend.append('title', formData.title);
+        formDataToSend.append('content', formData.content);
+        formDataToSend.append('categoryId', formData.category);
+        formDataToSend.append('published', formData.published);
+        formDataToSend.append('userId', formData.userId);
+
+        // Gestione speciale per l'immagine, se presente
+        if (formData.image instanceof File) {
+            formDataToSend.append('image', formData.image);
+        }
+
+        // Gestione speciale per i tags, se presenti
+        formData.tags.forEach((tag, index) => {
+            formDataToSend.append(`tags[]`, tag);
+        });
+
         try {
-            console.log(formData)
-            setPosts(currentPosts => ([...currentPosts, formData]))
+            const response = await axios.post(sendPostEndpoint, formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('Post added successfully:', response.data);
             setFormData(setupFormData)
+            fetchPosts()
         }
         catch (err) {
             setError(err.message)
@@ -103,7 +132,6 @@ const Form = ({ setError }) => {
         try {
             const categories = (await axios.get(categoriesEndpoint)).data;
 
-            console.log(categories)
             setcategories(categories);
         }
         catch (err) {
@@ -123,7 +151,7 @@ const Form = ({ setError }) => {
                 {inputs.map((input) => {
                     switch (input.type) {
                         case 'checkbox':
-                            if (input.name === "tags[]") {
+                            if (input.name === "tags") {
                                 return (
                                     <div className="w-100 my-2" key={input.name}>
                                         <label className="form-check-label w-100">
@@ -178,9 +206,9 @@ const Form = ({ setError }) => {
                                         name={input.name}
                                     >
                                         <option defaultValue={'selected'}>{input.placeholder}</option>
-                                        {categories.map(({ name }) => {
+                                        {categories.map(({ name, id }) => {
                                             return (
-                                                <option key={`cat-${name}`} value={name}>{name}</option>
+                                                <option key={`cat-${name}`} value={id}>{name}</option>
                                             )
                                         })}
                                     </select>
