@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Header from "./layouts/Header"
 import Footer from "./layouts/Footer"
 import Form from "./components/Form/Form"
 import Alert from "./components/Alert/Alert"
+import PostsList from "./components/Posts/PostsList"
 
 function App() {
 
@@ -13,7 +14,8 @@ function App() {
     <>
       <Header />
       <main className='container'>
-        <Form setError={setError}></Form>
+        <Form setError={(error) => setError(error)}></Form>
+        <PostsList setError={(error) => setError(error)} />
       </main>
       <Footer />
       <Alert error={error}></Alert>

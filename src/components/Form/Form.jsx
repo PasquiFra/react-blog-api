@@ -36,7 +36,7 @@ const Form = ({ setError }) => {
         },
         {
             label: "Immagine",
-            type: 'text',
+            type: 'file',
             name: "image",
             placeholder: 'Inserisci il link ad una immagine',
             className: 'form-control'
@@ -63,7 +63,6 @@ const Form = ({ setError }) => {
     ]
 
     const handleInputField = (name, value, tagName) => {
-        console.log(name, value, tagName)
         if (name === "tags[]") {
             setFormData(current => {
                 const updatedTags = value
@@ -74,6 +73,11 @@ const Form = ({ setError }) => {
                     tags: updatedTags
                 };
             });
+        } else if (name === "image") {
+            setFormData(current => ({
+                ...current,
+                image: event.target.files[0]
+            }));
         } else {
             setFormData(current => ({
                 ...current,
@@ -97,7 +101,7 @@ const Form = ({ setError }) => {
     return (
         <>
             <form onSubmit={submitForm}>
-                //! Creazione inputs del form
+                {/* //! Creazione inputs del form */}
                 {inputs.map((input) => {
                     switch (input.type) {
                         case 'checkbox':
@@ -165,6 +169,24 @@ const Form = ({ setError }) => {
                                 </div>
                             );
 
+                        case 'file':
+                            return (
+                                <div key={input.name}>
+                                    <label className="form-check-label w-100" htmlFor={"imageUpload"}>
+                                        <strong>{input.label}</strong>
+                                    </label>
+                                    <input
+                                        className={input.className}
+                                        id="imageUpload"
+                                        type={input.type}
+                                        placeholder={input.placeholder}
+                                        onChange={(event) => handleInputField(input.name, event.target.files[0])}
+                                        name={input.name}
+                                    >
+                                    </input>
+                                </div>
+                            );
+
                         default:
                             return (
                                 <div key={input.name} className=" my-2">
@@ -186,42 +208,6 @@ const Form = ({ setError }) => {
 
                 <button type="submit" className="btn btn-success my-3">Aggiungi</button>
             </form>
-            <div className="my-4">
-                <h3>I tuoi posts:</h3>
-                <ul id="posts-list">
-                    //! stampa dei posts
-                    {
-                        posts.map((post, index) => {
-                            return (
-                                <li key={`post-${index}`} >
-                                    <h3>{post.title}</h3>
-                                    <p>{post.content}</p>
-                                    <div>
-                                        <strong>Categoria:</strong>{post.category}
-                                    </div>
-                                    <div>
-                                        <strong>Tags:</strong>
-                                        {
-                                            post.tags.map((tag, index) => {
-                                                return (
-                                                    <span
-                                                        key={`tag-${tag}-${index}`}
-                                                        className="mx-2">
-                                                        {tag}
-                                                    </span>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                    <figure>
-                                        <img src={post.image} alt={`foto-post-${post.index}`} />
-                                    </figure>
-                                </li>
-                            )
-                        })
-                    }
-                </ul>
-            </div>
         </>
     )
 }
