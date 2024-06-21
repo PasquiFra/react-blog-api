@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 import './formStyle.scss'
 
 const Form = ({ setError }) => {
@@ -14,11 +15,10 @@ const Form = ({ setError }) => {
     }
 
     const [formData, setFormData] = useState(setupFormData);
-    const [posts, setPosts] = useState([]);
+    const [categories, setcategories] = useState([]);
 
     // setto i campi di input 
     const tagList = ["Bitcoin", "Digital Gold", "Cryptocurrency", "Ethereum", "Tokens"]
-    const categoryList = ["Informatics", "Economics", "Finance", "Politics"]
     const inputs = [
         {
             label: "Titolo",
@@ -76,7 +76,7 @@ const Form = ({ setError }) => {
         } else if (name === "image") {
             setFormData(current => ({
                 ...current,
-                image: event.target.files[0]
+                image: value
             }));
         } else {
             setFormData(current => ({
@@ -97,6 +97,24 @@ const Form = ({ setError }) => {
             setError(err.message)
         }
     }
+
+    const fetchCategories = async () => {
+        const categoriesEndpoint = "http://localhost:3000/categories";
+        try {
+            const categories = (await axios.get(categoriesEndpoint)).data;
+
+            console.log(categories)
+            setcategories(categories);
+        }
+        catch (err) {
+            setError(err.message)
+        }
+    }
+
+    useEffect(() => {
+        fetchCategories()
+    }, [])
+
 
     return (
         <>
@@ -160,9 +178,9 @@ const Form = ({ setError }) => {
                                         name={input.name}
                                     >
                                         <option defaultValue={'selected'}>{input.placeholder}</option>
-                                        {categoryList.map((cat, index) => {
+                                        {categories.map(({ name }) => {
                                             return (
-                                                <option key={`cat-${cat}`} value={cat}>{cat}</option>
+                                                <option key={`cat-${name}`} value={name}>{name}</option>
                                             )
                                         })}
                                     </select>
