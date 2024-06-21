@@ -11,7 +11,7 @@ const Form = ({ setError, fetchPosts }) => {
         image: null,
         category: "",
         tags: [],
-        published: null,
+        published: false,
         userId: 1
     }
 
